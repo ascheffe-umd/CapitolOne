@@ -11,6 +11,7 @@ Co.ce = {
         this.$form = $('#signInForm');
         //this.$menu = $('.menu .item');
         this.$resultsTable = $('#resultsTable');
+        this.$ccTable = $('#ccTable');
         this.$igD = $('#igD');
         this.$cb = $('#cb');
         this.$igC = $('#igC');
@@ -21,9 +22,9 @@ Co.ce = {
 
         $(".ui.checkbox").checkbox({
             onChange : function (element) {
-                var transByMonthMap = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked,
+                var sortedTrans = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked,
                     Co.ce.$cb[0].checked, Co.ce.cbtransData, Co.ce.$igC[0].checked);
-                Co.ce.initializeDataTable(transByMonthMap);
+                Co.ce.initializeDataTables(sortedTrans);
             }
         });
 
@@ -52,6 +53,7 @@ Co.ce = {
         });
 
         $.fn.dataTable.moment('YYYY-MM');
+        $.fn.dataTable.moment('YYYY-MM-DDTHH:mm:ssZ');
         this.dt = this.$resultsTable.DataTable({
             "iDisplayLength": 50,
             "order": [[0, "desc"]],
@@ -92,6 +94,25 @@ Co.ce = {
                     className: "cell_center",
                     targets: [4],
                     width: "30%"
+                }
+            ]
+        });
+
+        this.ccDt = this.$ccTable.DataTable({
+            "iDisplayLength": 50,
+            "order": [[1, "desc"]],
+            "columns": [
+                {"title": "Transaction Id", "data" : "transaction-id"},
+                {"title": "Transaction Time", "data" : "transaction-time"},
+                {"title": "Merchant", "data" : "merchant"},
+                {"title": "Categorization", "data" : "categorization"},
+                {"title": "Amount", "data" : "amount"},
+                {"title": "Account Id", "data" : "account-id"}
+            ],
+            "columnDefs": [
+                {
+                    targets: [0,1,2,3,4],
+                    className: "cell_center"
                 }
             ]
         });
@@ -137,9 +158,9 @@ Co.ce = {
                 cbData[0] && cbData[0].error && cbData[0].error === "no-error") {
                 Co.ce.transData = data[0].transactions;
                 Co.ce.cbtransData = cbData[0].transactions;
-                var transByMonthMap = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked,
+                var sortedTrans = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked,
                     Co.ce.$cb[0].checked, Co.ce.cbtransData, Co.ce.$igC[0].checked);
-                Co.ce.initializeDataTable(transByMonthMap);
+                Co.ce.initializeDataTables(sortedTrans);
             } else {
                 window.alert("Failed to get all transaction data");
             }
@@ -161,18 +182,6 @@ Co.ce = {
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
                 data: JSON.stringify(postData),
-                // success: function (data, textStatus, jqXHR) {
-                //     if (data && data.error && data.error === "no-error" && data.transactions) {
-                //         Co.ce.transData = data.transactions;
-                //         var transByMonthMap = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked);
-                //         Co.ce.initializeDataTable(transByMonthMap);
-                //     } else {
-                //         window.alert("Failed to get all transaction data");
-                //     }
-                // },
-                // error: function (jqXHR, textStatus, errorThrown) {
-                //     window.alert("Failed to get all transaction data");
-                // }
             });
         }
     },
@@ -195,19 +204,6 @@ Co.ce = {
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
                 data: JSON.stringify(postData),
-                // success: function (data, textStatus, jqXHR) {
-                //     if (data && data.error && data.error === "no-error" && data.transactions) {
-                //         Co.ce.cbtransData = data.transactions;
-                //         var transByMonthMap = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked,
-                //             Co.ce.$cb[0].checked, Co.ce.cbtransData, Co.ce.$igC[0].checked);
-                //         Co.ce.initializeDataTable(transByMonthMap);
-                //     } else {
-                //         window.alert("Failed to get all transaction data");
-                //     }
-                // },
-                // error: function (jqXHR, textStatus, errorThrown) {
-                //     window.alert("Failed to get all transaction data");
-                // }
             });
         }
     },
@@ -252,14 +248,17 @@ Co.ce = {
     },
     sortTransByMonth: function (transactions, ignoreDonuts, processCbData, cbData, ignoreCC) {
         "use strict";
-        var transByMonthMap = {};
+        // var transByMonthMap = {};
+        var retVal = {transByMonthMap : {}, ccTransArray : null };
 
         if(processCbData && cbData && cbData.length) {
             transactions = transactions.concat(cbData);
         }
 
         if(ignoreCC) {
-            transactions = this.trimOutCC(transactions).uptTransArray;
+            var trimmedCCres = this.trimOutCC(transactions);
+            transactions = trimmedCCres.uptTransArray;
+            retVal.ccTransArray = trimmedCCres.ccTransArray;
         }
 
 
@@ -270,8 +269,8 @@ Co.ce = {
                     if (transaction["transaction-time"]) {
                         var tmp = new Date(transaction["transaction-time"]);
                         var timeString = tmp.getFullYear() + "-" + (tmp.getMonth() + 1);
-                        if (!transByMonthMap[timeString]) {
-                            transByMonthMap[timeString] = {
+                        if (!retVal.transByMonthMap[timeString]) {
+                            retVal.transByMonthMap[timeString] = {
                                 "timeString": timeString,
                                 "valArr": [],
                                 "totalTransCount": 0,
@@ -280,27 +279,35 @@ Co.ce = {
                                 "totalSpent": 0
                             };
                         }
-                        transByMonthMap[timeString].valArr.push(transaction);
-                        transByMonthMap[timeString].totalTransCount++;
-                        transByMonthMap[timeString].totalTransValue += transaction.amount;
+                        retVal.transByMonthMap[timeString].valArr.push(transaction);
+                        retVal.transByMonthMap[timeString].totalTransCount++;
+                        retVal.transByMonthMap[timeString].totalTransValue += transaction.amount;
                         if (transaction.amount > 0) {
-                            transByMonthMap[timeString].totalIncome += transaction.amount;
+                            retVal.transByMonthMap[timeString].totalIncome += transaction.amount;
                         } else {
-                            transByMonthMap[timeString].totalSpent += transaction.amount;
+                            retVal.transByMonthMap[timeString].totalSpent += transaction.amount;
                         }
                     }
                 }
             }
         }
-        return transByMonthMap;
+        return retVal;
     },
-    initializeDataTable: function (transByMonthMap) {
+    initializeDataTables: function (sortedTrans) {
         "use strict";
-        var array = $.map(transByMonthMap, function(value, index) {
-            return [value];
-        });
         this.dt.clear();
-        this.dt.rows.add(array).draw();
+        if(sortedTrans.transByMonthMap) {
+            var array = $.map(sortedTrans.transByMonthMap, function(value, index) {
+                return [value];
+            });
+            this.dt.rows.add(array).draw();
+        }
+
+        this.ccDt.clear();
+        if(sortedTrans.ccTransArray) {
+            this.ccDt.rows.add(sortedTrans.ccTransArray).draw();
+        }
+
     }
     
     //tabVisible : function (tabPath, parameterArray, historyEvent) {

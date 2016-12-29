@@ -61,6 +61,28 @@ html
                                     th() Income
                                     th() Average Transaction Value
                             tbody
+
+                div(class="ui top attached segment")
+                    h3(class="ui header") Filtered CC Records
+                    div(data-tab="results", class="ui segment")
+                        table(id="ccTable", class="dataTable stripe", style="width : 100%")
+                            thead
+                                tr
+                                    th() Transaction Id
+                                    th() Transaction Time
+                                    th() Merchant
+                                    th() Categorization
+                                    th() Amount
+                                    th() Account Id
+                            tfoot
+                                tr
+                                    th() Transaction Id
+                                    th() Transaction Time
+                                    th() Merchant
+                                    th() Categorization
+                                    th() Amount
+                                    th() Account Id
+                            tbody
     footer
         script(type="text/javascript", src="//code.jquery.com/jquery-3.1.1.min.js", integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=", crossorigin="anonymous")
         script(type="text/javascript", src="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.7/semantic.min.js")

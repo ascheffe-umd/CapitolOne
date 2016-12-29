@@ -188,12 +188,19 @@ Co.ce = {
     genDtTableExtraRows : function( d ) {
         "use strict";
         var individTransAr = [];
-        individTransAr.push($("<tr><td></td><td class='cell_center bolded'>Transaction Id</td><td class='cell_center bolded'>Merchant" +
-            "</td><td class='cell_center bolded'>Amount</td><td class='cell_center bolded'>Transaction Time</td></tr>")[0]);
+        individTransAr.push($("<tr><td></td>" +
+            "<td class='cell_center bolded'>Transaction Id</td>" +
+            "<td class='cell_center bolded'>Merchant</td>" +
+            "<td class='cell_center bolded'>Amount</td>" +
+            "<td class='cell_center bolded'>Transaction Time</td>" +
+            "</tr>")[0]);
         for(var i = 0; i < d.valArr.length; i++) {
-            individTransAr.push($("<tr><td class='cell_center'>" + (i +1) + "</td><td class='cell_center'>" + d.valArr[i]["transaction-id"] + "</td><td class='cell_center'>" + d.valArr[i].merchant +
-                "</td><td class='cell_center'> $" + (d.valArr[i].amount  / 10000).toFixed(2) + "</td><td class='cell_center'>" + d.valArr[i]["transaction-time"] +
-                "</td></tr>")[0]);
+            individTransAr.push($("<tr><td class='cell_center'>" + (i +1) + "</td>" +
+                "<td class='cell_center'>" + d.valArr[i]["transaction-id"] + "</td>" +
+                "<td class='cell_center'>" + d.valArr[i].merchant + "</td>" +
+                "<td class='cell_center'> $" + (d.valArr[i].amount  / 10000).toFixed(2) + "</td>" +
+                "<td class='cell_center'>" + d.valArr[i]["transaction-time"] + "</td>" +
+                "</tr>")[0]);
         }
         return individTransAr;
     },
@@ -233,8 +240,8 @@ Co.ce = {
         "use strict";
         $.when(this.loadData(uid,token),this.loadCBData(uid,token)).
         done(function( data, cbData) {
-            if (data[0] && data[0].error && data[0].error === "no-error" && data[0].transactions &&
-                cbData[0] && cbData[0].error && cbData[0].error === "no-error") {
+            if (data[1] === "success" && data[0] && data[0].error && data[0].error === "no-error" && data[0].transactions &&
+                cbData[1] === "success" && cbData[0] && cbData[0].error && cbData[0].error === "no-error") {
                 Co.ce.transData = data[0].transactions;
                 Co.ce.cbtransData = cbData[0].transactions;
                 var sortedTrans = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked,
@@ -293,25 +300,27 @@ Co.ce = {
 
             for(var i = 0; i < transactions.length; i++) {
                 var transaction = transactions[i];
-                var amtString = Math.abs(transaction.amount).toString();
+                if(transaction["transaction-time"] && typeof transaction.amount === "number") {
+                    var amtString = Math.abs(transaction.amount).toString();
 
-                transaction.timeInMilli = new Date(transaction["transaction-time"]).getTime();
-                if(!transValMap[amtString]) {
-                    transValMap[amtString] = [];
-                    transValMap[amtString].push(transaction);
-                } else {
-                    var foundCC = false;
-                    for(var p = 0; p < transValMap[amtString].length; p++) {
-                        if(transaction.amount === (transValMap[amtString][p].amount * -1) &&
-                            Math.abs(transaction.timeInMilli - transValMap[amtString][p].timeInMilli) <= 86400000) {
-                            retVal.ccTransArray.push(transaction);
-                            retVal.ccTransArray.push(transValMap[amtString].splice(p,1)[0]);
-                            foundCC = true;
-                            break;
-                        }
-                    }
-                    if(!foundCC) {
+                    transaction.timeInMilli = new Date(transaction["transaction-time"]).getTime();
+                    if (!transValMap[amtString]) {
+                        transValMap[amtString] = [];
                         transValMap[amtString].push(transaction);
+                    } else {
+                        var foundCC = false;
+                        for (var p = 0; p < transValMap[amtString].length; p++) {
+                            if (transaction.amount === (transValMap[amtString][p].amount * -1) &&
+                                Math.abs(transaction.timeInMilli - transValMap[amtString][p].timeInMilli) <= 86400000) {
+                                retVal.ccTransArray.push(transaction);
+                                retVal.ccTransArray.push(transValMap[amtString].splice(p, 1)[0]);
+                                foundCC = true;
+                                break;
+                            }
+                        }
+                        if (!foundCC) {
+                            transValMap[amtString].push(transaction);
+                        }
                     }
                 }
             }
@@ -345,7 +354,7 @@ Co.ce = {
             for(var i = 0; i < transactions.length; i++) {
                 var transaction = transactions[i];
                 if(!ignoreDonuts || (transaction.merchant.toLowerCase() !== "krispy kreme donuts" && transaction.merchant.toLowerCase() !== "dunkin #336784")) {
-                    if (transaction["transaction-time"]) {
+                    if (transaction["transaction-time"] && typeof transaction.amount === "number") {
                         var tmp = new Date(transaction["transaction-time"]);
                         var timeString = tmp.getFullYear() + "-" + (tmp.getMonth() + 1);
                         if (!retVal.transByMonthMap[timeString]) {
@@ -380,6 +389,8 @@ Co.ce = {
                 return [value];
             });
             this.dt.rows.add(array).draw();
+        } else {
+            this.dt.rows.add([]).draw();
         }
 
         this.ccDt.clear();

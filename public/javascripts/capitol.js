@@ -56,8 +56,14 @@ Co.ce = {
         $.fn.dataTable.moment('YYYY-MM-DDTHH:mm:ssZ');
         this.dt = this.$resultsTable.DataTable({
             "iDisplayLength": 50,
-            "order": [[0, "desc"]],
+            "order": [[1, "desc"]],
             "columns": [
+                {
+                    className : 'details-control',
+                    orderable : false,
+                    data : null,
+                    defaultContent : ''
+                },
                 {"title": "Date", "data" : "timeString"},
                 {"title": "Total Transactions", "data" : "totalTransCount"},
                 {"title": "Spent", "data" : "totalSpent"},
@@ -69,12 +75,12 @@ Co.ce = {
                     render: function (data, type, row, meta) {
                         return moment(data, "YYYY-MM").format("YYYY MMM");
                     },
-                    targets: [0],
+                    targets: [1],
                     className: "cell_center",
                     width: "20%"
                 },
                 {
-                    targets: [1],
+                    targets: [2],
                     className: "cell_center",
                     width: "10%"
                 },
@@ -83,7 +89,7 @@ Co.ce = {
                         var value = (data / 10000);
                         return "$" + (value > 0 ? value : (value*-1)).toFixed(2) ;
                     },
-                    targets: [2,3],
+                    targets: [3,4],
                     className: "cell_center",
                     width: "20%"
                 },
@@ -92,16 +98,32 @@ Co.ce = {
                         return "$" +((row.totalTransValue / 10000) / row.totalTransCount).toFixed(2);
                     },
                     className: "cell_center",
-                    targets: [4],
+                    targets: [5],
                     width: "30%"
                 }
             ]
         });
 
+        this.$resultsTable.on('click', 'td.details-control', {parent : this}, function (event) {
+            var tr = $(this).closest('tr');
+            var row = event.data.parent.dt.row( tr );
+
+            if ( row.child.isShown() ) {
+                // This row is already open - close it
+                row.child.hide();
+                tr.removeClass('shown');
+            }
+            else {
+                // Open this row
+                row.child( event.data.parent.genDtTableExtraRows(row.data())).show();
+                tr.addClass('shown');
+            }
+        } );
+
         this.ccDt = this.$ccTable.DataTable({
             "iDisplayLength": 50,
             "responsive": true,
-            "order": [[1, "desc"]],
+            "order": [[1, "asc"]],
             "columns": [
                 {"title": "Transaction Id", "data" : "transaction-id", "responsivePriority": 0 },
                 {"title": "Transaction Time", "data" : "transaction-time", "responsivePriority": 0},
@@ -132,6 +154,18 @@ Co.ce = {
                 }
             ]
         });
+    },
+    genDtTableExtraRows : function( d ) {
+        "use strict";
+        var individTransAr = [];
+        individTransAr.push($("<tr><td></td><td class='cell_center bolded'>Transaction Id</td><td class='cell_center bolded'>Merchant" +
+            "</td><td class='cell_center bolded'>Amount</td><td class='cell_center bolded'>Transaction Time</td></tr>")[0]);
+        for(var i = 0; i < d.valArr.length; i++) {
+            individTransAr.push($("<tr><td class='cell_center'>" + (i +1) + "</td><td class='cell_center'>" + d.valArr[i]["transaction-id"] + "</td><td class='cell_center'>" + d.valArr[i].merchant +
+                "</td><td class='cell_center'> $" + (d.valArr[i].amount  / 10000).toFixed(2) + "</td><td class='cell_center'>" + d.valArr[i]["transaction-time"] +
+                "</td></tr>")[0]);
+        }
+        return individTransAr;
     },
     login: function (event, fields) {
         "use strict";
@@ -322,6 +356,8 @@ Co.ce = {
         this.ccDt.clear();
         if(sortedTrans.ccTransArray) {
             this.ccDt.rows.add(sortedTrans.ccTransArray).draw();
+        } else {
+            this.ccDt.rows.add([]).draw();
         }
 
     }

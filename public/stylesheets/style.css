@@ -21,11 +21,11 @@ a {
 }
 
 td.details-control {
-  background: url('/images/fa-caret-down.png') no-repeat center center;
+  background: url('../images/fa-caret-down.png') no-repeat center center;
   cursor: pointer;
 }
 tr.shown td.details-control {
-  background: url('/images/fa-caret-up.png') no-repeat center center;
+  background: url('../images/fa-caret-up.png') no-repeat center center;
 }
 
 td.bolded {

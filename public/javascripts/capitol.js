@@ -96,6 +96,28 @@ Co.ce = {
                     targets: [5],
                     width: "30%"
                 }
+            ],
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    text: 'Export As JSON',
+                    action: function ( e, dt, button, config ) {
+                        var data = dt.buttons.exportData();
+
+                        //{"2014-10": {"spent": "$200.00", "income": "$500.00"}
+
+                        var expDat = data.body.map(function (value) {
+                            var tmp = {};
+                            tmp[moment(value[1], "YYYY MMM").format("YYYY-MM")] = {"spent": value[3], "income": value[4]};
+                            return tmp;
+                        });
+
+                        $.fn.dataTable.fileSave(
+                            new Blob( [ JSON.stringify(expDat) ] ),
+                            'Export.json'
+                        );
+                    }
+                }
             ]
         });
 
@@ -146,6 +168,19 @@ Co.ce = {
                     },
                     targets: [4],
                     className: "cell_center"
+                }
+            ],
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    text: 'Export As JSON',
+                    action: function ( e, dt, button, config ) {
+                        var data = dt.buttons.exportData();
+                        $.fn.dataTable.fileSave(
+                            new Blob( [ JSON.stringify(data) ] ),
+                            'Export.json'
+                        );
+                    }
                 }
             ]
         });

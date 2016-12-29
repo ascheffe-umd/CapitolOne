@@ -1,7 +1,7 @@
 /**
  * Created by scheffela on 12/29/16.
  */
-/*global $, console */
+/*global $, moment, console */
 
 var Co = window.Co || {};
 
@@ -40,38 +40,46 @@ Co.ce = {
             onSuccess: this.login
         });
 
-        $(this.$resultsTable).DataTable({
+        $.fn.dataTable.moment('YYYY-MM');
+        this.dt = this.$resultsTable.DataTable({
             //"iDisplayLength": 10,
             "order": [[0, "desc"]],
             "columns": [
-                {"title": "Date"},
-                {"title": "Spent"},
-                {"title": "Income"}
+                {"title": "Date", "data" : "timeString"},
+                {"title": "Total Transactions", "data" : "totalTransCount"},
+                {"title": "Spent", "data" : "totalSpent"},
+                {"title": "Income", "data" : "totalIncome"},
+                {"title": "Average"}
             ],
             "columnDefs": [
                 {
                     render: function (data, type, row, meta) {
-                        return data;
+                        return moment(data, "YYYY-MM").format("YYYY MMM");
                     },
                     targets: [0],
-                    className: "cell_left",
+                    className: "cell_center",
+                    width: "20%"
+                },
+                {
+                    targets: [1],
+                    className: "cell_center",
+                    width: "10%"
+                },
+                {
+                    render: function (data, type, row, meta) {
+                        return (data / 10000);
+                    },
+                    targets: [2,3],
+                    className: "cell_center",
                     width: "20%"
                 },
                 {
                     render: function (data, type, row, meta) {
-                        return data;
-                    },
-                    targets: [1],
-                    className: "cell_center",
-                    width: "40%"
-                },
-                {
-                    render: function (data, type, row, meta) {
-                        return data;
+                        return ((row.totalTransValue / 10000) / row.totalTransCount).toFixed(2);
                     },
                     className: "cell_center",
-                    targets: [2],
-                    width: "40%"
+                    targets: [4],
+                    width: "30%"
                 }
             ]
         });
@@ -128,6 +136,8 @@ Co.ce = {
                 success: function (data, textStatus, jqXHR) {
                     if (data && data.error && data.error === "no-error" && data.transactions) {
                         Co.ce.transData = data.transactions;
+                        Co.ce.transByMonthMap = Co.ce.sortTransByMonth(data.transactions);
+                        Co.ce.initializeDataTable(Co.ce.transByMonthMap);
                     } else {
                         window.alert("Failed to get all transaction data");
                     }
@@ -138,9 +148,47 @@ Co.ce = {
             });
         }
     },
-    initializeDataTable: function () {
-        
+    sortTransByMonth: function (transactions) {
+        "use strict";
+        var transByMonthMap = {};
+        if(transactions && transactions.length) {
+            for(var i = 0; i < transactions.length; i++) {
+                var transaction = transactions[i];
+                if(transaction["transaction-time"]) {
+                    var tmp = new Date(transaction["transaction-time"]);
+                    var timeString = tmp.getFullYear() + "-" + (tmp.getMonth() + 1);
+                    if(!transByMonthMap[timeString]) {
+                        transByMonthMap[timeString] = {
+                            "timeString" : timeString,
+                            "valArr" : [],
+                            "totalTransCount" : 0,
+                            "totalTransValue" : 0,
+                            "totalIncome" : 0,
+                            "totalSpent" : 0
+                        };
+                    }
+                    transByMonthMap[timeString].valArr.push(transaction);
+                    transByMonthMap[timeString].totalTransCount++;
+                    transByMonthMap[timeString].totalTransValue += transaction.amount;
+                    if(transaction.amount > 0) {
+                        transByMonthMap[timeString].totalIncome += transaction.amount;
+                    } else {
+                        transByMonthMap[timeString].totalSpent += transaction.amount;
+                    }
+                }
+            }
+        }
+        return transByMonthMap;
+    },
+    initializeDataTable: function (transByMonthMap) {
+        "use strict";
+        var array = $.map(transByMonthMap, function(value, index) {
+            return [value];
+        });
+        this.dt.clear();
+        this.dt.rows.add(array).draw();
     }
+    
     //tabVisible : function (tabPath, parameterArray, historyEvent) {
     //    if(tabPath && tabPath === "results") {
     //        console.log("results");

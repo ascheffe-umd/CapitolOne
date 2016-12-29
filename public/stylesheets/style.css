@@ -7,3 +7,15 @@ body {
 a {
   color: #00B7FF;
 }
+
+
+.cell_center {
+  text-align: center;
+}
+.cell_right {
+  text-align: right;
+}
+
+.cell_left {
+  text-align: left;
+}

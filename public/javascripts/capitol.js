@@ -211,13 +211,57 @@ Co.ce = {
             });
         }
     },
-    sortTransByMonth: function (transactions, ignoreDonuts, processCbData, cbData) {
+    trimOutCC : function(transactions) {
+        "use strict";
+        var transValMap = {}, retVal = {uptTransArray: [], ccTransArray : []};
+        if(transactions && transactions.length) {
+
+            for(var i = 0; i < transactions.length; i++) {
+                var transaction = transactions[i];
+                var amtString = Math.abs(transaction.amount).toString();
+
+                transaction.timeInMilli = new Date(transaction["transaction-time"]).getTime();
+                if(!transValMap[amtString]) {
+                    transValMap[amtString] = [];
+                    transValMap[amtString].push(transaction);
+                } else {
+                    var foundCC = false;
+                    for(var p = 0; p < transValMap[amtString].length; p++) {
+                        if(transaction.amount === (transValMap[amtString][p].amount * -1) &&
+                            Math.abs(transaction.timeInMilli - transValMap[amtString][p].timeInMilli) <= 86400000) {
+                            retVal.ccTransArray.push(transaction);
+                            retVal.ccTransArray.push(transValMap[amtString].splice(p,1)[0]);
+                            foundCC = true;
+                            break;
+                        }
+                    }
+                    if(!foundCC) {
+                        transValMap[amtString].push(transaction);
+                    }
+                }
+            }
+
+            for(var key in transValMap) {
+                if (Object.prototype.hasOwnProperty.call(transValMap, key)) {
+                    retVal.uptTransArray = retVal.uptTransArray.concat(transValMap[key]);
+                }
+            }
+
+        }
+        return retVal;
+    },
+    sortTransByMonth: function (transactions, ignoreDonuts, processCbData, cbData, ignoreCC) {
         "use strict";
         var transByMonthMap = {};
 
         if(processCbData && cbData && cbData.length) {
             transactions = transactions.concat(cbData);
         }
+
+        if(ignoreCC) {
+            transactions = this.trimOutCC(transactions).uptTransArray;
+        }
+
 
         if(transactions && transactions.length) {
             for(var i = 0; i < transactions.length; i++) {

@@ -52,7 +52,7 @@ Co.ce = {
             onSuccess: this.login
         });
 
-        $.fn.dataTable.moment('YYYY-MM');
+        $.fn.dataTable.moment('YYYY MMM');
         $.fn.dataTable.moment('YYYY-MM-DDTHH:mm:ssZ');
         this.dt = this.$resultsTable.DataTable({
             "iDisplayLength": 50,

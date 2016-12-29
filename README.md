@@ -1,10 +1,10 @@
 # CapitolOne
 Interview App
 
-To run the app you must have NodeJS installed on your machine. See here 
+To run the app you must have NPM and NodeJS installed on your machine. See here 
 https://nodejs.org/en/download/package-manager/ for more info.
 
-To start the app run the following command `node bin/www` from the git repo top level directory. Then navigate to http://localhost:3000/ in your browser. 
+To start the app run the following commands `npm install` then `node bin/www` from the git repo top level directory. Then navigate to http://localhost:3000/ in your browser. 
 
 I've also compiled and include a static version of the html page here {git repo home dir}/public/index.html. It should work without the need of a node server. 
 

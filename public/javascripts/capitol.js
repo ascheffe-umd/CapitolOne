@@ -42,14 +42,14 @@ Co.ce = {
 
         $.fn.dataTable.moment('YYYY-MM');
         this.dt = this.$resultsTable.DataTable({
-            //"iDisplayLength": 10,
+            "iDisplayLength": 50,
             "order": [[0, "desc"]],
             "columns": [
                 {"title": "Date", "data" : "timeString"},
                 {"title": "Total Transactions", "data" : "totalTransCount"},
                 {"title": "Spent", "data" : "totalSpent"},
                 {"title": "Income", "data" : "totalIncome"},
-                {"title": "Average"}
+                {"title": "Average Transaction Value"}
             ],
             "columnDefs": [
                 {

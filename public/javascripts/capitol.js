@@ -11,10 +11,21 @@ Co.ce = {
         this.$form = $('#signInForm');
         //this.$menu = $('.menu .item');
         this.$resultsTable = $('#resultsTable');
+        this.$igD = $('#igD');
+        this.$cb = $('#cb');
+        this.$igC = $('#igC');
 
         //this.$menu.tab({
         //    onVisible : this.tabVisible
         //});
+
+        $('.ui.checkbox').checkbox({
+            onChange : function (element) {
+                var transByMonthMap = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked,
+                    Co.ce.$cb[0].checked,Co.ce.$igC[0].checked);
+                Co.ce.initializeDataTable(transByMonthMap);
+            }
+        });
 
         this.$form.form({
             fields: {
@@ -137,8 +148,8 @@ Co.ce = {
                 success: function (data, textStatus, jqXHR) {
                     if (data && data.error && data.error === "no-error" && data.transactions) {
                         Co.ce.transData = data.transactions;
-                        Co.ce.transByMonthMap = Co.ce.sortTransByMonth(data.transactions);
-                        Co.ce.initializeDataTable(Co.ce.transByMonthMap);
+                        var transByMonthMap = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked);
+                        Co.ce.initializeDataTable(transByMonthMap);
                     } else {
                         window.alert("Failed to get all transaction data");
                     }
@@ -149,32 +160,34 @@ Co.ce = {
             });
         }
     },
-    sortTransByMonth: function (transactions) {
+    sortTransByMonth: function (transactions, ignoreDonuts) {
         "use strict";
         var transByMonthMap = {};
         if(transactions && transactions.length) {
             for(var i = 0; i < transactions.length; i++) {
                 var transaction = transactions[i];
-                if(transaction["transaction-time"]) {
-                    var tmp = new Date(transaction["transaction-time"]);
-                    var timeString = tmp.getFullYear() + "-" + (tmp.getMonth() + 1);
-                    if(!transByMonthMap[timeString]) {
-                        transByMonthMap[timeString] = {
-                            "timeString" : timeString,
-                            "valArr" : [],
-                            "totalTransCount" : 0,
-                            "totalTransValue" : 0,
-                            "totalIncome" : 0,
-                            "totalSpent" : 0
-                        };
-                    }
-                    transByMonthMap[timeString].valArr.push(transaction);
-                    transByMonthMap[timeString].totalTransCount++;
-                    transByMonthMap[timeString].totalTransValue += transaction.amount;
-                    if(transaction.amount > 0) {
-                        transByMonthMap[timeString].totalIncome += transaction.amount;
-                    } else {
-                        transByMonthMap[timeString].totalSpent += transaction.amount;
+                if(!ignoreDonuts || (transaction.merchant !== "Krispy Kreme Donuts" && transaction.merchant !== "DUNKIN #336784")) {
+                    if (transaction["transaction-time"]) {
+                        var tmp = new Date(transaction["transaction-time"]);
+                        var timeString = tmp.getFullYear() + "-" + (tmp.getMonth() + 1);
+                        if (!transByMonthMap[timeString]) {
+                            transByMonthMap[timeString] = {
+                                "timeString": timeString,
+                                "valArr": [],
+                                "totalTransCount": 0,
+                                "totalTransValue": 0,
+                                "totalIncome": 0,
+                                "totalSpent": 0
+                            };
+                        }
+                        transByMonthMap[timeString].valArr.push(transaction);
+                        transByMonthMap[timeString].totalTransCount++;
+                        transByMonthMap[timeString].totalTransValue += transaction.amount;
+                        if (transaction.amount > 0) {
+                            transByMonthMap[timeString].totalIncome += transaction.amount;
+                        } else {
+                            transByMonthMap[timeString].totalSpent += transaction.amount;
+                        }
                     }
                 }
             }

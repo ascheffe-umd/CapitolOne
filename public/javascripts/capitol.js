@@ -9,16 +9,11 @@ Co.ce = {
     init: function () {
         "use strict";
         this.$form = $('#signInForm');
-        //this.$menu = $('.menu .item');
         this.$resultsTable = $('#resultsTable');
         this.$ccTable = $('#ccTable');
         this.$igD = $('#igD');
         this.$cb = $('#cb');
         this.$igC = $('#igC');
-
-        //this.$menu.tab({
-        //    onVisible : this.tabVisible
-        //});
 
         $(".ui.checkbox").checkbox({
             onChange : function (element) {
@@ -68,7 +63,7 @@ Co.ce = {
                 {"title": "Total Transactions", "data" : "totalTransCount"},
                 {"title": "Spent", "data" : "totalSpent"},
                 {"title": "Income", "data" : "totalIncome"},
-                {"title": "Average Transaction Value"}
+                {"title": "Average Transaction Value <br/> (Income - Spent) / Total Transactions"}
             ],
             "columnDefs": [
                 {
@@ -187,7 +182,6 @@ Co.ce = {
                 success: function (data, textStatus, jqXHR) {
                     if (data && data.error && data.error === "no-error" && data.token && data.uid) {
                         Co.ce.credentials = data;
-                        // Co.ce.$menu.tab("change tab","results");
                         Co.ce.$form.form('reset');
                         Co.ce.loadAllData(data.uid,data.token);
                     } else {
@@ -231,7 +225,7 @@ Co.ce = {
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
-                data: JSON.stringify(postData),
+                data: JSON.stringify(postData)
             });
         }
     },
@@ -253,7 +247,7 @@ Co.ce = {
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
-                data: JSON.stringify(postData),
+                data: JSON.stringify(postData)
             });
         }
     },
@@ -361,12 +355,6 @@ Co.ce = {
         }
 
     }
-    
-    //tabVisible : function (tabPath, parameterArray, historyEvent) {
-    //    if(tabPath && tabPath === "results") {
-    //        console.log("results");
-    //    }
-    //}
 };
 
 $(function () {

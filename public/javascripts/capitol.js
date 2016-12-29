@@ -67,7 +67,8 @@ Co.ce = {
                 },
                 {
                     render: function (data, type, row, meta) {
-                        return (data / 10000);
+                        var value = (data / 10000);
+                        return "$" + (value > 0 ? value : (value*-1)).toFixed(2) ;
                     },
                     targets: [2,3],
                     className: "cell_center",
@@ -75,7 +76,7 @@ Co.ce = {
                 },
                 {
                     render: function (data, type, row, meta) {
-                        return ((row.totalTransValue / 10000) / row.totalTransCount).toFixed(2);
+                        return "$" +((row.totalTransValue / 10000) / row.totalTransCount).toFixed(2);
                     },
                     className: "cell_center",
                     targets: [4],

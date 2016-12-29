@@ -19,10 +19,10 @@ Co.ce = {
         //    onVisible : this.tabVisible
         //});
 
-        $('.ui.checkbox').checkbox({
+        $(".ui.checkbox").checkbox({
             onChange : function (element) {
                 var transByMonthMap = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked,
-                    Co.ce.$cb[0].checked,Co.ce.$igC[0].checked);
+                    Co.ce.$cb[0].checked, Co.ce.cbtransData, Co.ce.$igC[0].checked);
                 Co.ce.initializeDataTable(transByMonthMap);
             }
         });
@@ -118,7 +118,7 @@ Co.ce = {
                         Co.ce.credentials = data;
                         // Co.ce.$menu.tab("change tab","results");
                         Co.ce.$form.form('reset');
-                        Co.ce.loadData(data.uid,data.token);
+                        Co.ce.loadAllData(data.uid,data.token);
                     } else {
                         Co.ce.$form.form('add errors', ["Invalid login credentials"]);
                     }
@@ -128,6 +128,22 @@ Co.ce = {
                 }
             });
         }
+    },
+    loadAllData : function (uid,token) {
+        "use strict";
+        $.when(this.loadData(uid,token),this.loadCBData(uid,token)).
+        done(function( data, cbData) {
+            if (data[0] && data[0].error && data[0].error === "no-error" && data[0].transactions &&
+                cbData[0] && cbData[0].error && cbData[0].error === "no-error") {
+                Co.ce.transData = data[0].transactions;
+                Co.ce.cbtransData = cbData[0].transactions;
+                var transByMonthMap = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked,
+                    Co.ce.$cb[0].checked, Co.ce.cbtransData, Co.ce.$igC[0].checked);
+                Co.ce.initializeDataTable(transByMonthMap);
+            } else {
+                window.alert("Failed to get all transaction data");
+            }
+        });
     },
     loadData : function (uid,token) {
         "use strict";
@@ -139,30 +155,70 @@ Co.ce = {
                     "api-token": "AppTokenForInterview"
                 }
             };
-            $.ajax({
+            return $.ajax({
                 url: 'https://2016.api.levelmoney.com/api/v2/core/get-all-transactions',
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
                 data: JSON.stringify(postData),
-                success: function (data, textStatus, jqXHR) {
-                    if (data && data.error && data.error === "no-error" && data.transactions) {
-                        Co.ce.transData = data.transactions;
-                        var transByMonthMap = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked);
-                        Co.ce.initializeDataTable(transByMonthMap);
-                    } else {
-                        window.alert("Failed to get all transaction data");
-                    }
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    window.alert("Failed to get all transaction data");
-                }
+                // success: function (data, textStatus, jqXHR) {
+                //     if (data && data.error && data.error === "no-error" && data.transactions) {
+                //         Co.ce.transData = data.transactions;
+                //         var transByMonthMap = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked);
+                //         Co.ce.initializeDataTable(transByMonthMap);
+                //     } else {
+                //         window.alert("Failed to get all transaction data");
+                //     }
+                // },
+                // error: function (jqXHR, textStatus, errorThrown) {
+                //     window.alert("Failed to get all transaction data");
+                // }
             });
         }
     },
-    sortTransByMonth: function (transactions, ignoreDonuts) {
+    loadCBData : function (uid,token) {
+        "use strict";
+        if(uid && token) {
+
+            var today =  new Date(), postData = {
+                "year" : today.getFullYear(),
+                "month" : today.getMonth() + 1,
+                "args": {
+                    "uid": uid,
+                    "token": token,
+                    "api-token": "AppTokenForInterview"
+                }
+            };
+            return $.ajax({
+                url: 'https://2016.api.levelmoney.com/api/v2/core/projected-transactions-for-month',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify(postData),
+                // success: function (data, textStatus, jqXHR) {
+                //     if (data && data.error && data.error === "no-error" && data.transactions) {
+                //         Co.ce.cbtransData = data.transactions;
+                //         var transByMonthMap = Co.ce.sortTransByMonth(Co.ce.transData, Co.ce.$igD[0].checked,
+                //             Co.ce.$cb[0].checked, Co.ce.cbtransData, Co.ce.$igC[0].checked);
+                //         Co.ce.initializeDataTable(transByMonthMap);
+                //     } else {
+                //         window.alert("Failed to get all transaction data");
+                //     }
+                // },
+                // error: function (jqXHR, textStatus, errorThrown) {
+                //     window.alert("Failed to get all transaction data");
+                // }
+            });
+        }
+    },
+    sortTransByMonth: function (transactions, ignoreDonuts, processCbData, cbData) {
         "use strict";
         var transByMonthMap = {};
+
+        if(processCbData && cbData && cbData.length) {
+            transactions = transactions.concat(cbData);
+        }
+
         if(transactions && transactions.length) {
             for(var i = 0; i < transactions.length; i++) {
                 var transaction = transactions[i];

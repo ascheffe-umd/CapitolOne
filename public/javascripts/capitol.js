@@ -100,18 +100,34 @@ Co.ce = {
 
         this.ccDt = this.$ccTable.DataTable({
             "iDisplayLength": 50,
+            "responsive": true,
             "order": [[1, "desc"]],
             "columns": [
-                {"title": "Transaction Id", "data" : "transaction-id"},
-                {"title": "Transaction Time", "data" : "transaction-time"},
-                {"title": "Merchant", "data" : "merchant"},
-                {"title": "Categorization", "data" : "categorization"},
-                {"title": "Amount", "data" : "amount"},
-                {"title": "Account Id", "data" : "account-id"}
+                {"title": "Transaction Id", "data" : "transaction-id", "responsivePriority": 0 },
+                {"title": "Transaction Time", "data" : "transaction-time", "responsivePriority": 0},
+                {"title": "Merchant", "data" : "merchant", "responsivePriority": 1},
+                {"title": "Categorization", "data" : "categorization", "responsivePriority": 2},
+                {"title": "Amount", "data" : "amount", "responsivePriority": 0},
+                {"title": "Account Id", "data" : "account-id", "responsivePriority": 3}
             ],
             "columnDefs": [
                 {
                     targets: [0,1,2,3,4],
+                    className: "cell_center"
+                },
+                {
+                    render: function (data, type, row, meta) {
+                        return moment(data, "YYYY-MM-DDTHH:mm:ssZ").format("llll");
+                    },
+                    targets: [1],
+                    className: "cell_center"
+                },
+                {
+                    render: function (data, type, row, meta) {
+                        var value = (data / 10000);
+                        return "$" + value.toFixed(2);
+                    },
+                    targets: [4],
                     className: "cell_center"
                 }
             ]

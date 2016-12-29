@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <link rel="stylesheet" href="stylesheets/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.7/semantic.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.1.1/css/responsive.dataTables.min.css">
+  </head>
+  <body>
+    <div class="ui fluid container">
+      <div class="ui basic segment">
+        <div class="ui top attached segment">
+          <h3 class="ui header">User Login</h3>
+          <!--div(class="ui top attached tabular menu")-->
+          <!--    div(class="active item", data-tab="login") Login-->
+          <!--    div(class="item", data-tab="results" ) Results-->
+          <!--div(data-tab="login", class="ui attached active tab segment")-->
+          <div class="ui segment" data-tab="login">
+            <div class="ui fluid form" id="signInForm">
+              <div class="two fields">
+                <div class="field">
+                  <label>User Name</label>
+                  <input placeholder="Email Address" name="username" type="email">
+                </div>
+                <div class="field">
+                  <label>Password</label>
+                  <input placeholder="Password" name="password" type="password">
+                </div>
+              </div>
+              <div class="ui secondary submit button">Sign In</div>
+              <div class="ui error message"></div>
+            </div>
+          </div>
+          <!--div(data-tab="results", class="ui attached tab segment")-->
+        </div>
+        <div class="ui top attached segment">
+          <h3 class="ui header">User Data</h3>
+          <div class="ui form">
+            <div class="inline fields">
+              <div class="field">
+                <div class="ui checkbox">
+                  <input type="checkbox" id="igD">
+                  <label>Ignore Donuts</label>
+                </div>
+              </div>
+              <div class="field">
+                <div class="ui checkbox">
+                  <input type="checkbox" id="cb">
+                  <label>Crystal Ball</label>
+                </div>
+              </div>
+              <div class="field">
+                <div class="ui checkbox">
+                  <input type="checkbox" id="igC">
+                  <label>Ignore CC Payments</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui segment" data-tab="results">
+            <table class="dataTable stripe" id="resultsTable" style="width : 100%">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Date</th>
+                  <th>Total Transactions</th>
+                  <th>Spent</th>
+                  <th>Income</th>
+                  <th>Average Transaction Value <br/> (Income - Spent) / Total Transactions</th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr>
+                  <th></th>
+                  <th>Date</th>
+                  <th>Total Transactions</th>
+                  <th>Spent</th>
+                  <th>Income</th>
+                  <th>Average Transaction Value <br/> (Income - Spent) / Total Transactions</th>
+                </tr>
+              </tfoot>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="ui top attached segment">
+          <h3 class="ui header">Filtered CC Records</h3>
+          <div class="ui segment" data-tab="results">
+            <table class="dataTable stripe" id="ccTable" style="width : 100%">
+              <thead>
+                <tr>
+                  <th>Transaction Id</th>
+                  <th>Transaction Time</th>
+                  <th>Merchant</th>
+                  <th>Categorization</th>
+                  <th>Amount</th>
+                  <th>Account Id</th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr>
+                  <th>Transaction Id</th>
+                  <th>Transaction Time</th>
+                  <th>Merchant</th>
+                  <th>Categorization</th>
+                  <th>Amount</th>
+                  <th>Account Id</th>
+                </tr>
+              </tfoot>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <footer>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.7/semantic.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.1.1/js/dataTables.responsive.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.2.4/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.2.4/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.13/sorting/datetime-moment.js"></script>
+    <script type="text/javascript" src="javascripts/capitol.js"></script>
+  </footer>
+</html>

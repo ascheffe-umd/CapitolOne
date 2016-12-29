@@ -315,7 +315,7 @@ Co.ce = {
         if(transactions && transactions.length) {
             for(var i = 0; i < transactions.length; i++) {
                 var transaction = transactions[i];
-                if(!ignoreDonuts || (transaction.merchant !== "Krispy Kreme Donuts" && transaction.merchant !== "DUNKIN #336784")) {
+                if(!ignoreDonuts || (transaction.merchant.toLowerCase() !== "krispy kreme donuts" && transaction.merchant.toLowerCase() !== "dunkin #336784")) {
                     if (transaction["transaction-time"]) {
                         var tmp = new Date(transaction["transaction-time"]);
                         var timeString = tmp.getFullYear() + "-" + (tmp.getMonth() + 1);

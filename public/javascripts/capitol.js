@@ -98,6 +98,7 @@ Co.ce = {
                         Co.ce.credentials = data;
                         // Co.ce.$menu.tab("change tab","results");
                         Co.ce.$form.form('reset');
+                        Co.ce.loadData(data.uid,data.token);
                     } else {
                         Co.ce.$form.form('add errors', ["Invalid login credentials"]);
                     }
@@ -107,6 +108,38 @@ Co.ce = {
                 }
             });
         }
+    },
+    loadData : function (uid,token) {
+        "use strict";
+        if(uid && token) {
+            var postData = {
+                "args": {
+                    "uid": uid,
+                    "token": token,
+                    "api-token": "AppTokenForInterview"
+                }
+            };
+            $.ajax({
+                url: 'https://2016.api.levelmoney.com/api/v2/core/get-all-transactions',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify(postData),
+                success: function (data, textStatus, jqXHR) {
+                    if (data && data.error && data.error === "no-error" && data.transactions) {
+                        Co.ce.transData = data.transactions;
+                    } else {
+                        window.alert("Failed to get all transaction data");
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    window.alert("Failed to get all transaction data");
+                }
+            });
+        }
+    },
+    initializeDataTable: function () {
+        
     }
     //tabVisible : function (tabPath, parameterArray, historyEvent) {
     //    if(tabPath && tabPath === "results") {

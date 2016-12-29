@@ -48,7 +48,7 @@ Co.ce = {
         });
 
         $.fn.dataTable.moment('YYYY MMM');
-        $.fn.dataTable.moment('YYYY-MM-DDTHH:mm:ssZ');
+        $.fn.dataTable.moment('llll');
         this.dt = this.$resultsTable.DataTable({
             "iDisplayLength": 50,
             "order": [[1, "desc"]],

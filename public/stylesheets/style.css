@@ -31,3 +31,7 @@ tr.shown td.details-control {
 td.bolded {
   font-weight: bold;
 }
+
+.ui.message .list:not(.ui) li::before {
+    content: "\2022" !important;
+}

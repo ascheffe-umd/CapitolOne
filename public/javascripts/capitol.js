@@ -6,6 +6,15 @@
 var Co = window.Co || {};
 
 Co.ce = {
+
+    /**
+     * This function initializes the page. It fetches all the need Jquery objects for use later. I wires up the onchange
+     * handler for the semantic ui checkbox filters. Initializes the semantic ui form object, adding in feild validation
+     * and the onSuccess handler. Finally it sets up both data tables.
+     *
+     * @param {Object} d - the backing data for the datatable row
+     * @return {Array} an array of the html chunks to be added underneath the data table row
+     */
     init: function () {
         "use strict";
         this.$form = $('#signInForm');
@@ -47,8 +56,12 @@ Co.ce = {
             onSuccess: this.login
         });
 
+
+        //Custom dataTable date sorters
         $.fn.dataTable.moment('YYYY MMM');
         $.fn.dataTable.moment('llll');
+
+
         this.dt = this.$resultsTable.DataTable({
             "iDisplayLength": 50,
             "order": [[1, "desc"]],
@@ -100,6 +113,7 @@ Co.ce = {
             dom: 'Bfrtip',
             buttons: [
                 {
+                    //Setup up export functionality
                     text: 'Export As JSON',
                     action: function ( e, dt, button, config ) {
                         var data = dt.buttons.exportData();
@@ -121,6 +135,10 @@ Co.ce = {
             ]
         });
 
+        /*
+        * This event handler will expand the results data tables nested transactions rows if the image on the right is
+        * toggled and hide them if it is toggled again.
+         */
         this.$resultsTable.on('click', 'td.details-control', {parent : this}, function (event) {
             var tr = $(this).closest('tr');
             var row = event.data.parent.dt.row( tr );
@@ -173,6 +191,7 @@ Co.ce = {
             dom: 'Bfrtip',
             buttons: [
                 {
+                    //Setup up export functionality
                     text: 'Export As JSON',
                     action: function ( e, dt, button, config ) {
                         var data = dt.buttons.exportData();
@@ -185,6 +204,13 @@ Co.ce = {
             ]
         });
     },
+
+    /**
+     * This function generates extra individual transaction for the results data table. Its a bit ugly, I know.
+     *
+     * @param {Object} d - the backing data for the datatable row
+     * @return {Array} an array of the html chunks to be added underneath the data table row
+     */
     genDtTableExtraRows : function( d ) {
         "use strict";
         var individTransAr = [];
@@ -204,6 +230,15 @@ Co.ce = {
         }
         return individTransAr;
     },
+
+    /**
+     * This function calls the external restful login service. If it succeeds its stores off the user's login
+     * credentials, resets the form input fields, and calls the load all data function to fetch the transactions for
+     * display. If it fails it updates the forms error message to indicate the failure.
+     *
+     * @param {Object} event - Unused, event that caused the login to occur
+     * @param {Object} fields -  Object containing the form fields and their values
+     */
     login: function (event, fields) {
         "use strict";
         Co.ce.credentials = {};
@@ -236,6 +271,14 @@ Co.ce = {
             });
         }
     },
+    /**
+     * This function uses a Jquery when to wait till both the users transaction and crystal ball transactions have been
+     * fetched. If successful it will, sort/filter the fetched transactions, and reload the page's data tables. If
+     * fails it will popup an alert window notify the user.
+     *
+     * @param {String} uid - The user's uid
+     * @param {String} token - The user's token value
+     */
     loadAllData : function (uid,token) {
         "use strict";
         $.when(this.loadData(uid,token),this.loadCBData(uid,token)).
@@ -252,6 +295,14 @@ Co.ce = {
             }
         });
     },
+    /**
+     * This function is just a wrapped around a JQuery ajax post call to get all the transactions for a
+     * given user.
+     *
+     * @param {String} uid - The user's uid
+     * @param {String} token - The user's token value
+     * @returns {Object} a deffered object to be used later.
+     */
     loadData : function (uid,token) {
         "use strict";
         if(uid && token) {
@@ -271,6 +322,14 @@ Co.ce = {
             });
         }
     },
+    /**
+     * This function is just a wrapped around a JQuery ajax post call to get all the crystal ball transactions for a
+     * given user.
+     *
+     * @param {String} uid - The user's uid
+     * @param {String} token - The user's token value
+     * @returns {Object} a deffered object to be used later.
+     */
     loadCBData : function (uid,token) {
         "use strict";
         if(uid && token) {
@@ -293,6 +352,17 @@ Co.ce = {
             });
         }
     },
+    /**
+     * This function filters out CC transactions and returns an object with 2 properties one containing the CC
+     * transactions and another containing the non CC transactions. The logic is relatively simple. I create a map of
+     * arrays keyed off of the absolute transaction amount value. When a new transaction is processed, the map is checked
+     * to see if other transactions with the same ABS amount value have been found before. If so the array values are
+     * compared to see if a previous transaction has occurred within one day and if the values negate each other. If so
+     * both transactions are filtered out and added to the CC array.
+     *
+     * @param {Array} transactions - All the transactions to process
+     * @returns {Object} containing the 2 arrays, one for non CC's the other for CC's
+     */
     trimOutCC : function(transactions) {
         "use strict";
         var transValMap = {}, retVal = {uptTransArray: [], ccTransArray : []};
@@ -334,6 +404,26 @@ Co.ce = {
         }
         return retVal;
     },
+    /**
+     * This function is kind of the center of all the Logic. If processCbData is true and valid cbData has been passed
+     * along it will append the cb data to the array of regular transaction data for processing. If ignore CC is true
+     * it will call the trimOutCC function to remove any CC transactions. Finally if ignoreDonuts is true the code will
+     * not evaluate any donut transactions.
+     *
+     * Once all the filtering has occurred the function builds out a map, keyed off the year-month value of the
+     * transaction times. Each entry contains an array of all transactions for that year month,
+     * the total number of transactions that occurred, total value of both the credits and debits, and a running total
+     * for all transaction amounts for the month.
+     *
+     * @param {Array} transactions - All the transactions to process
+     * @param {boolean} ignoreDonuts - Whether or not to process donut transactions
+     * @param {boolean} processCbData - Whether or not to process crystal ball transactions
+     * @param {Array} cbData - An array of crystal ball transactions
+     * @param {boolean} ignoreCC - Whether or not to filter CC transactions
+     *
+     * @returns {Object} containing the CC transaction array if CC transactions were filtered, and the Transactions by
+     * month map
+     */
     sortTransByMonth: function (transactions, ignoreDonuts, processCbData, cbData, ignoreCC) {
         "use strict";
         // var transByMonthMap = {};
@@ -381,10 +471,16 @@ Co.ce = {
         }
         return retVal;
     },
+
+    /**
+     * This function initializes the pages 2 data tables updating their values or clearing them accordingly.
+     * @param {Object} sortedTrans - An object with 2 arrays representing the transactions broken up by month and the filtered CC transactions
+     */
     initializeDataTables: function (sortedTrans) {
         "use strict";
         this.dt.clear();
         if(sortedTrans.transByMonthMap) {
+            //Datatables takes an array, to break down the map
             var array = $.map(sortedTrans.transByMonthMap, function(value, index) {
                 return [value];
             });

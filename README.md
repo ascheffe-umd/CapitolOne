@@ -1,6 +1,8 @@
 # CapitolOne
 Interview App
 
+Credentials username: interview@levelmoney.com password: password2. 
+
 To run the app you must have NPM and NodeJS installed on your machine. See here 
 https://nodejs.org/en/download/package-manager/ for more info.
 
